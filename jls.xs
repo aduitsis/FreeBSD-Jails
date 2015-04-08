@@ -1,3 +1,7 @@
+#include "EXTERN.h"
+#include "perl.h"
+#include "XSUB.h"
+
 // works like jls, but aims to be self-contained in order to
 // be included in a Perl module someday
 //
@@ -46,14 +50,14 @@ char * jail_getname(int jid)
                             strerror(errno));
                 return NULL;
         } else {
-                name = strdup(namebuf);
+                name = strndup(namebuf,255);
                 if (name == NULL)
                         strerror_r(errno, jail_errmsg, 255);
         }
         return name;
 }
 
-int main(int argc,char **argv) { 
+HV * enum_jails() { 
 	struct iovec iov[4];
 	u_int niov;
 	int ret;
@@ -62,31 +66,54 @@ int main(int argc,char **argv) {
 	char empty[] = "";
 	int jail_id;
 
-	printf("Searching for jails...\n");
+	HV *hash;
+
+	hash = newHV();
+
+	//printf("Searching for jails...\n");
 
 	while( 1 ) { 
 
 		*(const void **)&iov[0].iov_base = "lastjid";
-		iov[0].iov_len = strlen("lastjid") + 1;
+		iov[0].iov_len = strnlen("lastjid",255) + 1;
 		iov[1].iov_base = &jid;
 		iov[1].iov_len = sizeof(jid);
 
 		if( ( jail_id = jail_get(iov, 2, flags) ) == -1 ) { 
 			if( errno == ENOENT ) { 
-				printf("probably finished\n");
-				exit(0);
+				//printf("probably finished\n");
+				return hash;	
 			}
 			else { 
 				perror("jail_get returned error");
 				exit(1);
 			}
 		}
-		printf("jailid = %d\n",jail_id);
+		//printf("jailid = %d\n",jail_id);
 
-		printf("jailname = %s\n", jail_getname( jail_id ) );
+		//printf("jailname = %s\n", jail_getname( jail_id ) );
+
+		char buf[255];	
+		int n;
+		n = snprintf( buf, 255, "%d" , jail_id); 
+
+		hv_store( hash , buf , n, newSVpv( jail_getname( jail_id ) , strnlen(jail_getname( jail_id ),255) ) , 0 );
 	
 		jid = jail_id;
 	}
 }
 
+MODULE = jls	PACKAGE = jls 
+PROTOTYPES: ENABLE
 
+SV * 
+get_jails()
+	CODE:
+		HV *hash;
+		hash = enum_jails();
+		// @@TODO Figure out how this mortal stuff works exactly, I have 
+		// only a few hours experience with XS
+		// RETVAL = sv_2mortal( (SV*)newRV_noinc( (SV *)hash ) );
+		RETVAL = (SV*)newRV_noinc( (SV *)hash ) ;
+	OUTPUT:
+		RETVAL
