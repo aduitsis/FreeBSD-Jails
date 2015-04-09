@@ -1,4 +1,4 @@
-package jls;
+package FreeBSD::Jails;
 
 use v5.18;
 
@@ -13,5 +13,5 @@ require DynaLoader;
 
 @ISA = qw(Exporter DynaLoader);
 
-bootstrap jls;
+bootstrap FreeBSD::Jails;
 1;

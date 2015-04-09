@@ -103,7 +103,7 @@ HV * enum_jails() {
 	}
 }
 
-MODULE = jls	PACKAGE = jls 
+MODULE = FreeBSD::Jails	PACKAGE = FreeBSD::Jails 
 PROTOTYPES: ENABLE
 
 SV * 
@@ -114,6 +114,12 @@ get_jails()
 		// @@TODO Figure out how this mortal stuff works exactly, I have 
 		// only a few hours experience with XS
 		// RETVAL = sv_2mortal( (SV*)newRV_noinc( (SV *)hash ) );
-		RETVAL = (SV*)newRV_noinc( (SV *)hash ) ;
+		SV* sv ;
+		sv = (SV*)newRV_noinc( (SV *)hash ) ;
+		// hash already has a reference count 1
+		// we called newRV_noinc because we don't want the reference count to increase to 2.
+		//RETVAL = (SV*)newRV_noinc( (SV *)hash ) ;
+		RETVAL = sv;
+		// printf("reference count is %d \n",SvREFCNT(sv));
 	OUTPUT:
 		RETVAL

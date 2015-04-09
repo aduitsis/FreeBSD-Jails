@@ -5,17 +5,18 @@ use v5.18;
 use warnings;
 use strict;
 use Data::Printer;
-use Data::Dumper;
+#use Devel::Peek 'Dump';
 
-use lib '.';
-use jls;
+use FreeBSD::Jails;
 
 use Test::More qw(no_plan);
 
 ok(1,"trivial test");
 
-my $jails = jls::get_jails();
+my $jails = FreeBSD::Jails::get_jails();
 
 is( ref( $jails ) , 'HASH', 'jls::get_jails returns hash reference' ) ; 
 
-say p( $jails ) ;
+#say p( $jails ) ;
+
+#Dump( $jails ) ; 
