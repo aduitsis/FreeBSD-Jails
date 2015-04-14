@@ -1,6 +1,9 @@
 use strict;
 use warnings;
 use Module::Build;
+use Config;
+
+die 'OS unsupported' unless ( $Config{osname} eq 'freebsd' );
 
 my $builder = Module::Build->new(
     module_name         => 'FreeBSD::Jails',
@@ -15,12 +18,13 @@ my $builder = Module::Build->new(
     requires => {
 	'version'	=> 0,
     },
-    recommends => {
-	'Time::HiRes'	=> 0,
+    configure_requires => { 
+	    'Module::Build' => 0.42 
     },
     dist_abstract => 'jail list for FreeBSD systems',
     #provides => 'FreeBSD::Jails',
     #xs_files => { 'jls.xs' => 'ls.xs' } ,
+    create_makefile_pl => 'traditional',
 );
 
 $builder->create_build_script();
